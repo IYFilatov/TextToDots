@@ -36,7 +36,7 @@ export default class Screen {
       v.sy = v.defY;
       v.speed = Math.random()*30 + 1;
       v.angle = (Math.random()*360)*Math.PI/180;
-      v.tick = -1;      
+      v.tick = -0.5;      
     });
 
     if (addFlag && this.drawingObj) {
@@ -73,35 +73,36 @@ export default class Screen {
 
   draw() {
     this.drawingObj.forEach(v=>{
-      this.drawDots(v);
-    });
+      this.drawDots(v);      
+    });    
   }
 
   drawDots(arrObj) {
-    // let img = this.bufCtx.getImageData(0, 0, this.width, this.height);
-    // let imgData = img.data;
-
-    // arrObj?.arrData?.forEach((v) => {
-    //   this.calculateDotPosition(v);
-    //   this.drawPixel(imgData, v.x, v.y, {
-    //     r: v.rgb[0],
-    //     g: v.rgb[1],
-    //     b: v.rgb[2],
-    //     a: 255,
-    //   });
-    // });
-    // this.bufCtx.putImageData(img, 0, 0);
-
-    arrObj?.arrData?.forEach((v) => {
-      this.calculateDotPosition(v);
-      this.drawPixelWithRect(v.x, v.y, {
-        r: v.rgb[0],
-        g: v.rgb[1],
-        b: v.rgb[2],
-        a: 255,
+    if (glConst.dotSize > 1) {
+      arrObj?.arrData?.forEach((v) => {
+        this.calculateDotPosition(v); 
+        this.drawPixelWithRect(v.x, v.y, {
+          r: v.rgb[0],
+          g: v.rgb[1],
+          b: v.rgb[2],
+          a: 255,
+        });
       });
-    });
+    } else {
+      let img = this.bufCtx.getImageData(0, 0, this.width, this.height);
+      let imgData = img.data;
 
+      arrObj?.arrData?.forEach((v) => {
+        this.calculateDotPosition(v);
+        this.drawPixel(imgData, v.x, v.y, {
+          r: v.rgb[0],
+          g: v.rgb[1],
+          b: v.rgb[2],
+          a: 255,
+        });
+      });
+      this.bufCtx.putImageData(img, 0, 0);
+    }
   }
 
   calculateDotPosition(dot){    
@@ -161,21 +162,29 @@ export default class Screen {
 
   drawPixelWithRect(x, y, color) {
     this.bufCtx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-    this.bufCtx.fillRect(x, y, 2, 2);
+    this.bufCtx.fillRect(x, y, glConst.dotSize, glConst.dotSize);
   }
 
-  drawFPS(timeStamp) {
-    // Calculate the number of seconds passed since the last frame
+  drawStat(timeStamp) {
+    // Calculate fps
     let secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
     this.oldTimeStamp = timeStamp;
-
-    // Calculate fps
     let fps = Math.round(1 / secondsPassed);
 
-    // Draw number to the screen
-    this.bufCtx.font = "15px Arial";
+    // Draw FPS
+    this.bufCtx.font = "11px Arial";
     this.bufCtx.fillStyle = "lime";
-    this.bufCtx.fillText("FPS: " + fps, 5, 15);
+    this.bufCtx.fillText(`FPS: ${fps}`, 5, 11);
+
+    //calculate Dots
+    let dots = this.drawingObj.reduce((acc, v) => {
+      return acc += v?.arrData.length;
+    }, 0);
+
+    // Draw dots count
+    this.bufCtx.fillText(`dots: ${dots}`, 5, 25);
+    
+
   }
 
   output() {
@@ -200,53 +209,61 @@ export default class Screen {
   }
 
   textToDotsArr(text) {
+    let textFont = "16px Arial"; //16px Ubuntu Mono"
     let bufCanvas = document.createElement("canvas");
-    let scanWidth = Math.min(text?.length*50, 150);
-    scanWidth = Math.max(scanWidth, 50);
+    bufCanvas.height = 20;
     
-
-    bufCanvas.width = scanWidth;
-    bufCanvas.height = 50;
     let bufCtx = bufCanvas.getContext("2d");
-
-    bufCtx.font = "60px Arial";
+    bufCtx.font = textFont;
+    let scanWidth = bufCtx.measureText(text).width;
+    
+    bufCanvas.width = Math.trunc(scanWidth) + 1;
+    
+    // //debug{
+    //   bufCtx.fillStyle = 'rgb(100, 100, 100)';
+    //   bufCtx.fillRect(0, 0, bufCanvas.width, bufCanvas.height);
+    // //}
+    
+    bufCtx.font = textFont;
     bufCtx.fillStyle = 'rgb(255, 0, 0)';
-    bufCtx.fillText(text, 0, 50, scanWidth);
+    bufCtx.fillText(text, 0, 15, scanWidth);
 
-    let xCenter = this.width / 2  - scanWidth / 2;
-    let yCenter = 275;
-    let pdata;
+    let pdata, ind;
     let resObj = {
       id: text,
-      arrData: [],
+      arrData: []
     };
-    for (let x = 0; x < this.width; x+=2) {
-      for (let y = 0; y < this.height; y+=2) {
-        pdata = bufCtx.getImageData(x, y, 1, 1).data;
+    let imgData = bufCtx.getImageData(0, 0, bufCanvas.width-1, bufCanvas.height-1).data;
+    for (let x = 0; x < bufCanvas.width-1; x++) {
+      for (let y = 0; y < bufCanvas.height-1; y++) {
+        ind = 4 * ((bufCanvas.width-1) * y + x);
+        pdata = [imgData[ind + 0], imgData[ind + 1], imgData[ind + 2], imgData[ind + 3]]
         if (pdata[3] !== 0) {
-          //&& pdata[0] + pdata[1] + pdata[2] === 0 ){
-          resObj.arrData.push({
-            x: x+xCenter, 
-            defX: x+xCenter,
-            y: y+yCenter,
-            defY: y+yCenter,
-            // tick: 0,
-            // speed: Math.random()*50 + 1,
-            // angle: (Math.random()*360)*Math.PI/180,
-            rgb: [pdata[0], pdata[1], pdata[2]],
-            defRGB: [pdata[0], pdata[1], pdata[2]],
-            //rgb: [Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255)],
-            hex:
-              "#" +
-              ("000000" + this.rgbToHex(pdata[0], pdata[1], pdata[2])).slice(
-                -6
-              ),
-          });
+          this.addDotsBlock(resObj, x, y, pdata, glConst.textResize, bufCanvas);
         }
       }
     }
 
     return resObj;
+  }
+
+  addDotsBlock(resObj, x, y, pdata, multiplyAt, bufCanvas){
+    let xCenter = this.width/2  - bufCanvas.width*glConst.dotSize*multiplyAt/2;
+    let yCenter = this.height/2 - bufCanvas.height*glConst.dotSize*multiplyAt/2;
+
+    for (let multPosX = 0; multPosX < multiplyAt; multPosX++){
+      for (let multPosY = 0; multPosY < multiplyAt; multPosY++){
+        resObj.arrData.push({
+          x: x*glConst.dotSize*multiplyAt+(multPosX*glConst.dotSize) + xCenter,
+          defX: x*glConst.dotSize*multiplyAt+(multPosX*glConst.dotSize) + xCenter,
+          y: y*glConst.dotSize*multiplyAt+multPosY*glConst.dotSize + yCenter,
+          defY: y*glConst.dotSize*multiplyAt+multPosY*glConst.dotSize + yCenter,
+          rgb: [pdata[0], pdata[1], pdata[2]],
+          defRGB: [pdata[0], pdata[1], pdata[2]],
+          hex: "#" + ("000000" + this.rgbToHex(pdata[0], pdata[1], pdata[2])).slice(-6),
+        });
+      }
+    }    
   }
 
   rgbToHex(r, g, b) {

@@ -1,4 +1,5 @@
 import {default as Screen} from './screen.js';
+import {default as glConst} from './constants.js';
 
 let stopFlag = true;
 let mainCanvas;
@@ -11,13 +12,15 @@ function init() {
   
   mainCanvas = new Screen(canvas, context);
 
-  //window.requestAnimationFrame(drawloop);
+  start();
 }
 
 function updateText(e) {
   let inpValue = e.target.value.trim();
   if (inpValue){
-    mainCanvas.setDrawingObj(inpValue.charAt(inpValue.length-1), true);
+    let lastChar = inpValue.charAt(inpValue.length-1);
+    mainCanvas.setDrawingObj(lastChar, glConst.lettersQueue);
+    e.target.value = lastChar;
     start();
   }  
 }
@@ -25,10 +28,9 @@ function updateText(e) {
 function drawloop(timeStamp) {
   mainCanvas.clearScreen();
   mainCanvas.draw();
-  mainCanvas.drawFPS(timeStamp);
-
+  mainCanvas.drawStat(timeStamp);
   mainCanvas.output();
-
+  
   if (!stopFlag){
     window.requestAnimationFrame(drawloop);
   }
@@ -53,7 +55,7 @@ function start() {
 
     const input = document.getElementById('ttc');
     if (!input.value.trim()){
-      mainCanvas.setDrawingObj('Abrader', false);
+      mainCanvas.setDrawingObj('Abrader', glConst.startTextQueue);
     }
 
     window.requestAnimationFrame(drawloop);
