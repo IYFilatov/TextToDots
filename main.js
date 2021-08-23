@@ -17,7 +17,7 @@ function init() {
 function updateText(e) {
   let inpValue = e.target.value.trim();
   if (inpValue){
-    mainCanvas.setDrawingObj(inpValue.charAt(inpValue.length-1), false);
+    mainCanvas.setDrawingObj(inpValue.charAt(inpValue.length-1), true);
     start();
   }  
 }

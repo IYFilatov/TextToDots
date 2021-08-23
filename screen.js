@@ -8,6 +8,7 @@ export default class Screen {
     this.height = canvas.height;
     this.initBufCanvas();
     this.textToArrCached = this.textToDotsArrCached();    
+    this.drawingObj = [];
   }
 
   initBufCanvas() {
@@ -21,19 +22,45 @@ export default class Screen {
   }
 
   setDrawingObj(text = "Abrader", addFlag = false) {
-    if (addFlag && this.drawingObj) {
-      text = this.drawingObj.id + text;
-    };
+    // if (addFlag && this.drawingObj) {
+    //   text = this.drawingObj.id + text;
+    // };    
 
     let ObjArr = this.textToArrCached(text);
-    this.drawingObj = ObjArr;
-    this.drawingObj.setTime = Date.now();
-    this.drawingObj?.arrData?.map((v) => { 
-      v.startTime = this.drawingObj.setTime;
+    ObjArr.setTime = Date.now();
+    ObjArr?.arrData?.map((v) => { 
+      v.startTime = ObjArr.setTime;
       v.x = v.defX;
       v.y = v.defY;
-      v.tick = 0;
+      v.sx = v.defX;
+      v.sy = v.defY;
+      v.speed = Math.random()*30 + 1;
+      v.angle = (Math.random()*360)*Math.PI/180;
+      v.tick = -1;      
     });
+
+    if (addFlag && this.drawingObj) {
+      if (this.countMappedDots() >= glConst.maxPoints){
+        this.drawingObj.splice(0, 1);
+      }
+
+      if (!this.drawingObj.some(v => v.id === ObjArr.id)){
+        this.drawingObj.push(ObjArr);
+      } 
+      
+    } else {
+      this.drawingObj = [ObjArr];
+    }
+
+  }
+
+  countMappedDots() {
+    let dotsAmount = 0;
+
+    this.drawingObj.forEach(v=>{
+      dotsAmount+=v.arrData.length;
+    });    
+    return dotsAmount;
   }
 
   clearScreen() {
@@ -44,7 +71,9 @@ export default class Screen {
   }
 
   draw() {
-    this.drawDots(this.drawingObj);
+    this.drawingObj.forEach(v=>{
+      this.drawDots(v);
+    });    
   }
 
   drawDots(arrObj) {
@@ -76,15 +105,15 @@ export default class Screen {
 
   calculateDotPosition(dot){    
     dot.tick += glConst.precision;
-    dot.x = dot.speed * Math.cos(dot.angle) * dot.tick + dot.defX;
-    dot.y = (dot.speed * Math.sin(dot.angle) * dot.tick + glConst.g * (dot.tick*dot.tick)/2) + dot.defY;
+    dot.x = dot.speed * Math.cos(dot.angle) * dot.tick + dot.sx;
+    dot.y = (dot.speed * Math.sin(dot.angle) * dot.tick + glConst.g * (dot.tick*dot.tick)/2) + dot.sy;
     dot.rgb = [255, 255 - Math.trunc(255/this.height*dot.y), 0];
     
     //bounce from canvas bottom
     if (dot.y >= this.height) {
       dot.tick -= glConst.precision;
-      let px = dot.speed * Math.cos(dot.angle) * dot.tick + dot.defX;
-      let py = (dot.speed * Math.sin(dot.angle) * dot.tick + glConst.g * (dot.tick*dot.tick)/2) + dot.defY;
+      let px = dot.speed * Math.cos(dot.angle) * dot.tick + dot.sx;
+      let py = (dot.speed * Math.sin(dot.angle) * dot.tick + glConst.g * (dot.tick*dot.tick)/2) + dot.sy;
       //detect angle between dots
       let a = 90;
       
@@ -100,6 +129,8 @@ export default class Screen {
       dot.tick = 0;
       dot.x = px;
       dot.y = py;
+      dot.sx = px;
+      dot.sy = py;
       dot.speed = dot.speed / 2;
     }
 
@@ -107,9 +138,11 @@ export default class Screen {
     if (dot.speed < glConst.precision || dot.x < 0 || dot.x > this.width){
       dot.x = this.width / 2;
       dot.y = this.height;
+      dot.sx = dot.x;
+      dot.sy = dot.y;
       dot.angle = ((Math.random()*200) / 10 + 260) * Math.PI / 180;
       dot.tick = 0;
-      dot.speed = Math.random()*50 + 10;
+      dot.speed = Math.random()*50 + 50;
       dot.rgb = dot.defRGB;
     }
   }
@@ -196,9 +229,9 @@ export default class Screen {
             defX: x+xCenter,
             y: y+yCenter,
             defY: y+yCenter,
-            tick: 0,
-            speed: Math.random()*50 + 10,
-            angle: (Math.random()*360)*Math.PI/180,
+            // tick: 0,
+            // speed: Math.random()*50 + 1,
+            // angle: (Math.random()*360)*Math.PI/180,
             rgb: [pdata[0], pdata[1], pdata[2]],
             defRGB: [pdata[0], pdata[1], pdata[2]],
             //rgb: [Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255)],
