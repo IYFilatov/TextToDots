@@ -32,6 +32,7 @@ export default class Screen {
       v.startTime = this.drawingObj.setTime;
       v.x = v.defX;
       v.y = v.defY;
+      v.tick = 0;
     });
   }
 
@@ -43,10 +44,6 @@ export default class Screen {
   }
 
   draw() {
-    // let randomColor = Math.random() > 0.5 ? "#ff8080" : "#0099b0";
-    // this.bufCtx.fillStyle = randomColor;
-    // this.bufCtx.fillRect(100, 50, 200, 175);
-
     this.drawDots(this.drawingObj);
   }
 
@@ -63,7 +60,6 @@ export default class Screen {
     //     a: 255,
     //   });
     // });
-
     // this.bufCtx.putImageData(img, 0, 0);
 
     arrObj?.arrData?.forEach((v) => {
@@ -113,7 +109,7 @@ export default class Screen {
       dot.y = this.height;
       dot.angle = ((Math.random()*200) / 10 + 260) * Math.PI / 180;
       dot.tick = 0;
-      dot.speed = Math.random()*50 + 50;
+      dot.speed = Math.random()*50 + 10;
       dot.rgb = dot.defRGB;
     }
   }
@@ -150,7 +146,7 @@ export default class Screen {
 
   output() {
     this.ctx.drawImage(this.bufCanvas, 0, 0);
-  }
+  }  
 
   textToDotsArrCached(){
     let cache = {};
@@ -171,32 +167,37 @@ export default class Screen {
 
   textToDotsArr(text) {
     let bufCanvas = document.createElement("canvas");
-    bufCanvas.width = 150;
-    bufCanvas.height = 30;
+    let scanWidth = Math.min(text?.length*50, 150);
+    scanWidth = Math.max(scanWidth, 50);
+    
+
+    bufCanvas.width = scanWidth;
+    bufCanvas.height = 50;
     let bufCtx = bufCanvas.getContext("2d");
 
-    bufCtx.font = "30px Arial";
-    //bufCtx.fillStyle = "black";
+    bufCtx.font = "60px Arial";
     bufCtx.fillStyle = 'rgb(255, 0, 0)';
-    bufCtx.fillText(text, 0, 25, 150);
+    bufCtx.fillText(text, 0, 50, scanWidth);
 
+    let xCenter = this.width / 2  - scanWidth / 2;
+    let yCenter = 275;
     let pdata;
     let resObj = {
       id: text,
       arrData: [],
     };
-    for (let x = 0; x < this.width; x++) {
-      for (let y = 0; y < this.height; y++) {
+    for (let x = 0; x < this.width; x+=2) {
+      for (let y = 0; y < this.height; y+=2) {
         pdata = bufCtx.getImageData(x, y, 1, 1).data;
         if (pdata[3] !== 0) {
           //&& pdata[0] + pdata[1] + pdata[2] === 0 ){
           resObj.arrData.push({
-            x: x+400, 
-            defX: x+400,
-            y: y+300,
-            defY: y+300,
+            x: x+xCenter, 
+            defX: x+xCenter,
+            y: y+yCenter,
+            defY: y+yCenter,
             tick: 0,
-            speed: Math.random()*50+1,
+            speed: Math.random()*50 + 10,
             angle: (Math.random()*360)*Math.PI/180,
             rgb: [pdata[0], pdata[1], pdata[2]],
             defRGB: [pdata[0], pdata[1], pdata[2]],
