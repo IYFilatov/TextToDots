@@ -1,0 +1,30 @@
+* {
+  box-sizing: border-box;
+  padding: 0px;
+  margin: 0px;
+}
+
+.left {
+  background-color: #51afee;
+  padding: 20px;
+  float: left;
+  min-width: 20%;
+}
+
+.main {
+  background-color: #f1f1f1;
+  padding: 20px;
+  float: left;
+  min-width: 80%;
+}
+
+ #canvas {
+  max-width: 100%;
+  max-height: 100%;  
+}
+
+@media screen and (max-width: 800px) {
+  .left, .main {
+    width: 100%;
+  }
+}

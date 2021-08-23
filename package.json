@@ -1,0 +1,19 @@
+{
+  "name": "canvasdots",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node server.js"
+  },
+  "author": "Abrader",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "http-server": "^13.0.0",
+    "morgan": "^1.10.0",
+    "node-static": "^0.7.11",
+    "serve-static": "^1.14.1"
+  }
+}
