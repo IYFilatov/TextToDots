@@ -66,14 +66,15 @@ export default class Screen {
   clearScreen() {
     // this.ctx.clearRect(0, 0, this.width, this.height);
     // this.bufCtx.clearRect(0, 0, this.width, this.height);
-    this.bufCtx.fillStyle = "#FFFFFF";
+    //this.bufCtx.fillStyle = "#FFFFFF";
+    this.bufCtx.fillStyle = "#000000";
     this.bufCtx.fillRect(0, 0, this.width, this.height);
   }
 
   draw() {
     this.drawingObj.forEach(v=>{
       this.drawDots(v);
-    });    
+    });
   }
 
   drawDots(arrObj) {
@@ -172,9 +173,9 @@ export default class Screen {
     let fps = Math.round(1 / secondsPassed);
 
     // Draw number to the screen
-    this.bufCtx.font = "25px Arial";
-    this.bufCtx.fillStyle = "black";
-    this.bufCtx.fillText("FPS: " + fps, 10, 30);
+    this.bufCtx.font = "15px Arial";
+    this.bufCtx.fillStyle = "lime";
+    this.bufCtx.fillText("FPS: " + fps, 5, 15);
   }
 
   output() {
